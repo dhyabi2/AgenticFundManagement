@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Agentic Fund Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #logs div { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Agentic Fund Dashboard</h1>
+  <div id="logs"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const logs = document.getElementById('logs');
+    socket.on('update', data => {
+      const div = document.createElement('div');
+      div.textContent = `[${data.topic}] ${data.message}`;
+      logs.prepend(div);
+    });
+  </script>
+</body>
+</html>
