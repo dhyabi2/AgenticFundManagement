@@ -23,17 +23,3 @@ This project uses the **Letta** framework to orchestrate asynchronous tasks for 
 - Unit tests start the REST API and dashboard, then execute the demo to verify the wallet file is created.
 - Additional tests invoke each agent individually to ensure their methods resolve and produce expected data structures.
 
-
-## Expanded Testing Plan
-
-To mirror real-world operation, each agent now has its own test module.  The modules simulate typical scenarios using stubbed AI responses and MQTT clients so tests run quickly without external services.  Every module contains at least **15** distinct tests covering normal behavior and edge cases:
-
-- **ResearchAgent** – handles a variety of rating responses including invalid JSON and network failures.
-- **MarketAnalysisAgent** – evaluates different market trends and graceful fallbacks.
-- **RiskManagementAgent** – checks trade approvals across many conditions.
-- **PortfolioManagementAgent** – makes buy decisions with varying research scores and risk outcomes.
-- **TradingAgent** – executes a mix of buy and sell trades for multiple assets.
-- **SecurityAgent** – writes numerous wallet addresses to file ensuring reliability.
-- **ComplianceAgent** – generates daily reports via the AI endpoint.
-
-An integration test still runs the full demo with the REST API and dashboard to confirm end-to-end behaviour and creation of `fund-wallet.txt`.
