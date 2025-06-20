@@ -28,9 +28,15 @@ The API listens on `http://localhost:3000` by default.
 - `POST /initializeAccount` – body: `{ address, privateKey }`
 - `POST /sendTransaction` – body: `{ fromAddress, toAddress, amountRaw, privateKey }`
 - `POST /receiveAllPending` – body: `{ address, privateKey }`
+- `POST /ai/ask` – body: `{ prompt }` – returns a Gemini AI response
 
 ## Testing
 
 ```
 npm test
 ```
+
+### AI configuration
+
+Set `GEMINI_API_KEY` environment variable to override the default sample key used
+for the `/ai/ask` endpoint.

@@ -1,6 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { NanoMCPServer } = require('nano-mcp/src/server');
+const { execFile } = require('child_process');
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBNZQBYpPqen_tDAIuZ7aRdHaj4fgR_19c';
 
 // create underlying Nano MCP server instance
 const nanoServer = new NanoMCPServer();
@@ -88,6 +91,27 @@ app.post('/receiveAllPending', async (req, res) => {
     const { address, privateKey } = req.body;
     const result = await call('receiveAllPending', { address, privateKey });
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// simple AI endpoint using Google Gemini
+app.post('/ai/ask', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const payload = JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] });
+    execFile('curl', ['-s', '-X', 'POST', url, '-H', 'Content-Type: application/json', '-d', payload], (err, stdout) => {
+      if (err) return res.status(500).json({ error: err.message });
+      try {
+        const data = JSON.parse(stdout);
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        res.json({ text });
+      } catch (e) {
+        res.status(500).json({ error: e.message });
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

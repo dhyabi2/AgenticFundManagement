@@ -28,4 +28,12 @@ describe('Nano MCP REST API', function(){
     expect(res.body.address).to.be.a('string');
     expect(res.body.privateKey).to.be.a('string');
   });
+
+  it('should return AI response', async function(){
+    const res = await request('http://localhost:3000')
+      .post('/ai/ask')
+      .send({ prompt: 'Hello' });
+    expect(res.status).to.equal(200);
+    expect(res.body.text).to.be.a('string');
+  });
 });
