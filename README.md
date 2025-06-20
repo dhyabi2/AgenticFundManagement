@@ -1,10 +1,11 @@
 # Agentic Fund Management
 
-This repository contains three main components:
+This repository contains four main components:
 
 - **NANO_MCP_SERVER** – original Nano MCP server codebase
 - **nano-mcp-api** – REST API wrapper used for this demo
-- **fund-demo** – multi-agent demo that uses AI via the REST API, generates a wallet, and writes the address to `fund-wallet.txt`
+- **fund-demo** – multi-agent demo that uses AI via the REST API, generates a wallet, writes the address to `fund-wallet.txt`, and publishes progress over MQTT
+- **dashboard** – web dashboard and MQTT broker showing each agent's activity
 
 ## Setup
 
@@ -14,6 +15,7 @@ Install dependencies and run tests in each project:
 cd NANO_MCP_SERVER && npm install --omit=dev && cd ..
 cd nano-mcp-api && npm install && npm test && cd ..
 cd fund-demo && npm install && npm test && cd ..
+cd dashboard && npm install && cd ..
 ```
 
 The REST API exposes an `/ai/ask` endpoint that forwards prompts to Google Gemini. Set `GEMINI_API_KEY` to override the default demo key.
@@ -24,9 +26,14 @@ The REST API exposes an `/ai/ask` endpoint that forwards prompts to Google Gemin
    ```bash
    node nano-mcp-api/src/server.js
    ```
-2. In another terminal, run the demo:
+2. Start the dashboard which also runs the MQTT broker:
+   ```bash
+   node dashboard/server.js
+   ```
+3. In another terminal, run the demo:
    ```bash
    cd fund-demo && npm start
    ```
 
-The generated wallet address is stored in `fund-demo/fund-wallet.txt`.
+Visit `http://localhost:4000` to view agent progress. The generated wallet address
+is stored in `fund-demo/fund-wallet.txt`.

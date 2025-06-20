@@ -3,16 +3,22 @@ const fs = require('fs');
 const path = require('path');
 
 let server;
+let dashboard;
 
 before(function(done){
   // start the API server
   const apiPath = path.join(__dirname, '..', '..', 'nano-mcp-api', 'src', 'server.js');
   server = require(apiPath);
+  const dashPath = path.join(__dirname, '..', '..', 'dashboard', 'server.js');
+  dashboard = require(dashPath).start();
   setTimeout(done, 500);
 });
 
 after(function(){
   server.close && server.close();
+  dashboard.httpServer.close();
+  dashboard.mqttServer.close();
+  dashboard.mqttClient.end(true);
 });
 
 describe('Agentic Fund Demo', function(){

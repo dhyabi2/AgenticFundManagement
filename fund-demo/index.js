@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const mqtt = require('mqtt');
 
 const API_URL = 'http://localhost:3000';
 
@@ -13,10 +14,19 @@ async function askAI(prompt) {
   }
 }
 const WALLET_FILE = 'fund-wallet.txt';
+const MQTT_URL = 'mqtt://localhost:1883';
+const mqttClient = mqtt.connect(MQTT_URL);
+
+function publish(topic, message) {
+  if (mqttClient.connected) {
+    mqttClient.publish(topic, message.toString());
+  }
+}
 
 class ResearchAgent {
   async evaluate() {
     console.log('ResearchAgent: evaluating assets via AI...');
+    publish('agent/research', 'evaluating assets via AI');
     const prompt = 'Rate the cryptocurrency NANO from 0 to 1 based on fundamentals. Respond with JSON {"score": <number>}';
     const text = await askAI(prompt);
     try {
@@ -31,8 +41,10 @@ class ResearchAgent {
 class MarketAnalysisAgent {
   async analyze() {
     console.log('MarketAnalysisAgent: analyzing market via AI...');
+    publish('agent/market', 'analyzing market via AI');
     const prompt = 'What is the current cryptocurrency market trend? Respond with JSON {"trend":"bullish"|"bearish"|"neutral"}';
     const text = await askAI(prompt);
+    publish('agent/market', `analysis result: ${text}`);
     try {
       const data = JSON.parse(text);
       return { trend: data.trend || 'neutral' };
@@ -50,11 +62,13 @@ class PortfolioManagementAgent {
 
   async decide(research, market) {
     console.log('PortfolioManagementAgent: making decisions...');
+    publish('agent/portfolio', 'making portfolio decision');
     // simple demo: if top asset has score > 0.5 buy small amount
     if (research[0].score > 0.5) {
       const decision = { action: 'buy', asset: research[0].symbol, amount: 1 };
       if (await this.riskAgent.check(decision)) {
         this.portfolio.push(decision);
+        publish('agent/portfolio', `decided ${JSON.stringify(decision)}`);
         return decision;
       }
     }
@@ -65,8 +79,10 @@ class PortfolioManagementAgent {
 class RiskManagementAgent {
   async check(decision) {
     console.log('RiskManagementAgent: checking decision via AI...');
+    publish('agent/risk', `checking decision ${JSON.stringify(decision)}`);
     const prompt = `Is the following trade safe? Reply with JSON {\"ok\":true/false}: ${JSON.stringify(decision)}`;
     const text = await askAI(prompt);
+    publish('agent/risk', `AI result ${text}`);
     try {
       const data = JSON.parse(text);
       return !!data.ok;
@@ -79,8 +95,10 @@ class RiskManagementAgent {
 class TradingAgent {
   async execute(decision, wallet) {
     console.log('TradingAgent: executing trade', decision);
+    publish('agent/trading', `executing ${JSON.stringify(decision)}`);
     const prompt = `Pretend to execute trade ${JSON.stringify(decision)} from address ${wallet.address}. Reply with 'done'.`;
     await askAI(prompt);
+    publish('agent/trading', 'trade executed');
   }
 }
 
@@ -88,13 +106,16 @@ class SecurityAgent {
   async storeWallet(wallet) {
     fs.writeFileSync(WALLET_FILE, wallet.address);
     console.log(`SecurityAgent: wallet address saved to ${WALLET_FILE}`);
+    publish('agent/security', `wallet stored: ${wallet.address}`);
   }
 }
 
 class ComplianceAgent {
   async report() {
     console.log('ComplianceAgent: generating report via AI...');
+    publish('agent/compliance', 'generating compliance report');
     await askAI('Provide a short compliance summary for today.');
+    publish('agent/compliance', 'report generated');
   }
 }
 
@@ -113,6 +134,7 @@ async function main() {
   const compliance = new ComplianceAgent();
 
   console.log('Initializing fund wallet...');
+  publish('agent/security', 'initializing wallet');
   const wallet = await initializeWallet();
   await security.storeWallet(wallet);
 
@@ -125,6 +147,7 @@ async function main() {
 
   await compliance.report();
   console.log('Demo complete');
+  mqttClient.end();
 }
 
 module.exports = { main };
